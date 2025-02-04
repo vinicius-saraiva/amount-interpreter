@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Format Parser</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="layout-grid">
+        <div class="left-column">
+            <div class="container">
+                <h1>Number Format Parser</h1>
+                <button id="showHowItWorks" class="how-it-works-btn">?</button>
+                <div class="input-group">
+                    <label for="numberInput">Enter or paste a number:</label>
+                    <input type="text" id="numberInput" placeholder="0.00">
+                </div>
+                <div class="result">
+                    Parsed number (raw): <span id="parsedResult">0.00</span>
+                </div>
+            </div>
+
+            <div class="container test-cases">
+                <h2>Test Cases (Click to try)</h2>
+                <div class="test-grid">
+                    <div class="test-case">
+                        <span class="input">1,32</span>
+                        <span class="expected">→ 1.32</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1.32</span>
+                        <span class="expected">→ 1.32</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">109</span>
+                        <span class="expected">→ 109.00</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">109,32</span>
+                        <span class="expected">→ 109.32</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1.092,32</span>
+                        <span class="expected">→ 1092.32</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1,092.32</span>
+                        <span class="expected">→ 1092.32</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1 092,32</span>
+                        <span class="expected">→ 1092.32</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">€1,234.56</span>
+                        <span class="expected">→ 1234.56</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">$1.234,56</span>
+                        <span class="expected">→ 1234.56</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1.234,56 EUR</span>
+                        <span class="expected">→ 1234.56</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">123,456,789.00</span>
+                        <span class="expected">→ 123456789.00</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">123.456.789,00</span>
+                        <span class="expected">→ 123456789.00</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">123 456,78</span>
+                        <span class="expected">→ 123456.78</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1 234,56 €</span>
+                        <span class="expected">→ 1234.56</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">,123</span>
+                        <span class="expected">→ 0.123</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1.000,00</span>
+                        <span class="expected">→ 1000.00</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1932392.32</span>
+                        <span class="expected">→ 1932392.32</span>
+                    </div>
+                    <div class="test-case">
+                        <span class="input">1239232,32</span>
+                        <span class="expected">→ 1239232.32</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="howItWorksModal" class="modal">
+            <div class="modal-content container explanation">
+                <div class="modal-header">
+                    <h2>How It Works</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="process-section">
+                    <h3>🔄 Live Number Formatting Process</h3>
+                    
+                    <div class="stepper">
+                        <div class="stepper-input">
+                            <label>Try with this amount:</label>
+                            <input type="text" id="stepperInput" placeholder="Paste or type an amount">
+                            <button id="startStepper">Start Process</button>
+                        </div>
+                        
+                        <div class="stepper-content" style="display: none;">
+                            <div class="step-display">
+                                <div class="step-number">Step <span id="currentStep">1</span>/6</div>
+                                <div class="step-description" id="stepDescription"></div>
+                                <div class="step-result" id="stepResult"></div>
+                            </div>
+                            
+                            <div class="step-controls">
+                                <button id="prevStep" disabled>← Previous</button>
+                                <button id="nextStep">Next →</button>
+                                <button id="resetStepper" class="reset-btn">Start Over</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="process-group">
+                        <h4>When Typing Numbers:</h4>
+                        <ol>
+                            <li>As you type, the formatter:
+                                <ul>
+                                    <li>Adds spaces every 3 digits (e.g., "1 234 567")</li>
+                                    <li>Preserves your chosen decimal separator (. or ,)</li>
+                                    <li>Limits decimals to 2 digits (for cents)</li>
+                                </ul>
+                            </li>
+                            <li>The decimal part:
+                                <ul>
+                                    <li>Use . or , to start decimal part</li>
+                                    <li>Maximum 2 decimal places allowed</li>
+                                    <li>Typing more than 2 decimals is prevented</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="process-group">
+                        <h4>When Pasting Numbers:</h4>
+                        <ol>
+                            <li>Cleaning:
+                                <ul>
+                                    <li>Removes currency symbols ($, €, £, ¥)</li>
+                                    <li>Removes currency codes (USD, EUR)</li>
+                                    <li>Removes letters and special characters</li>
+                                    <li>Keeps only numbers and separators</li>
+                                </ul>
+                            </li>
+                            <li>Separator Detection:
+                                <ul>
+                                    <li>If both , and . exist → Last one becomes decimal separator</li>
+                                    <li>If only one exists → Treats it as decimal separator</li>
+                                    <li>Converts all to consistent format</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="process-group">
+                        <h4>Examples:</h4>
+                        <div class="example-grid">
+                            <div class="example">
+                                <span class="label">Typing:</span>
+                                <span class="sample">1234 → 1 234</span>
+                                <span class="sample">1234.5 → 1 234.50</span>
+                            </div>
+                            <div class="example">
+                                <span class="label">Pasting:</span>
+                                <span class="sample">$1,234.56 → 1 234.56</span>
+                                <span class="sample">1.234,56 € → 1 234,56</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <img src="https://raw.githubusercontent.com/vinicius-saraiva/flappy-chouette/refs/heads/main/assets/bird-2.png" 
+             alt="Bird" 
+             class="footer-bird"
+             onerror="this.style.display='none'">
+    </div>
+
+    <script>
+        function parseNumber(input) {
+            // Step 1: Trim whitespace
+            let value = input.trim();
+            
+            // Step 2: Remove currency symbols and codes
+            value = value.replace(/[$€£¥]|USD|EUR|GBP|JPY/gi, '');
+            
+            // Remove all spaces
+            value = value.replace(/\s/g, '');
+            
+            // If empty after cleaning, return 0
+            if (!value) return 0;
+            
+            // Check for both separators
+            const hasComma = value.includes(',');
+            const hasDot = value.includes('.');
+            
+            if (hasComma && hasDot) {
+                // Last separator is decimal
+                const lastComma = value.lastIndexOf(',');
+                const lastDot = value.lastIndexOf('.');
+                const decimalSeparator = lastComma > lastDot ? ',' : '.';
+                
+                // Replace all other occurrences with nothing
+                if (decimalSeparator === ',') {
+                    value = value.replace(/\./g, '').replace(',', '.');
+                } else {
+                    value = value.replace(/,/g, '');
+                }
+            } else if (hasComma) {
+                // Only comma exists - treat as decimal
+                value = value.replace(',', '.');
+            }
+            
+            // Convert to number
+            const number = parseFloat(value);
+            return isNaN(number) ? 0 : number;
+        }
+
+        function formatInput(value, decimalSeparator = '.') {
+            // First clean the input of currency symbols, letters, and other non-numeric characters
+            value = value
+                // Remove currency symbols, letters, and other special characters
+                .replace(/[$€£¥]|[A-Za-z]|USD|EUR|GBP|JPY/gi, '')
+                // Remove plus/minus signs
+                .replace(/[+\-]/g, '')
+                // Remove all spaces
+                .replace(/\s/g, '')
+                // Remove any other special characters except numbers, comma, and period
+                .replace(/[^\d,\.]/g, '');
+            
+            // Return empty string if no valid characters remain
+            if (!value) return '';
+            
+            // Split number into integer and decimal parts
+            let [integerPart, decimalPart] = value.split(decimalSeparator);
+            
+            // If no integer part (e.g., ".123" or ",123"), add a leading zero
+            if (!integerPart) {
+                integerPart = '0';
+            }
+            
+            // Limit decimal part to 2 digits
+            if (decimalPart) {
+                decimalPart = decimalPart.slice(0, 2);
+            }
+            
+            // Remove any remaining separators from integer part
+            integerPart = integerPart.replace(/[,\.]/g, '');
+            
+            // Add thousand separators
+            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            
+            // If the original value ends with a separator, add it back
+            if (value.endsWith(decimalSeparator)) {
+                return `${integerPart}${decimalSeparator}`;
+            }
+            
+            // Return formatted number
+            return decimalPart ? `${integerPart}${decimalSeparator}${decimalPart}` : integerPart;
+        }
+
+        const input = document.getElementById('numberInput');
+        const result = document.getElementById('parsedResult');
+
+        input.addEventListener('input', function(e) {
+            const value = this.value;
+            
+            // Determine decimal separator based on last occurrence
+            let decimalSeparator = '.';
+            const lastComma = value.lastIndexOf(',');
+            const lastDot = value.lastIndexOf('.');
+            
+            if (lastComma > lastDot) {
+                decimalSeparator = ',';
+            }
+            
+            // Get cursor position before formatting
+            const cursorPos = this.selectionStart;
+            
+            // Format the input value
+            const formattedValue = formatInput(value, decimalSeparator);
+            
+            // Only update if the formatted value is different
+            if (formattedValue !== value) {
+                // Count spaces before cursor in original value
+                const spacesBeforeCursor = (value.slice(0, cursorPos).match(/\s/g) || []).length;
+                
+                // Count spaces before cursor in new value
+                const newSpacesBeforeCursor = (formattedValue.slice(0, cursorPos).match(/\s/g) || []).length;
+                
+                // Update input value
+                this.value = formattedValue;
+                
+                // Adjust cursor position for added spaces
+                const newCursorPos = cursorPos + (newSpacesBeforeCursor - spacesBeforeCursor);
+                this.setSelectionRange(newCursorPos, newCursorPos);
+            }
+            
+            // Update parsed result
+            const parsed = parseNumber(this.value);
+            result.textContent = parsed.toFixed(2);
+        });
+
+        // Add click handlers for test cases
+        document.querySelectorAll('.test-case').forEach(testCase => {
+            testCase.addEventListener('click', function() {
+                const inputValue = this.querySelector('.input').textContent;
+                input.value = inputValue;
+                input.dispatchEvent(new Event('input'));
+                input.focus();
+            });
+        });
+
+        const stepperStates = {
+            1: {
+                description: "Trim whitespace and clean input",
+                transform: (value) => {
+                    return value.trim();
+                }
+            },
+            2: {
+                description: "Remove currency symbols and codes",
+                transform: (value) => {
+                    return value.replace(/[$€£¥]|USD|EUR|GBP|JPY/gi, '');
+                }
+            },
+            3: {
+                description: "Remove spaces and special characters",
+                transform: (value) => {
+                    return value.replace(/\s/g, '');
+                }
+            },
+            4: {
+                description: "Detect decimal separator",
+                transform: (value) => {
+                    const hasComma = value.includes(',');
+                    const hasDot = value.includes('.');
+                    if (hasComma && hasDot) {
+                        return `Detected separators: , and .\nLast separator will be decimal: ${value.lastIndexOf(',') > value.lastIndexOf('.') ? ',' : '.'}`;
+                    } else if (hasComma) {
+                        return `Detected separator: ,\nWill be treated as decimal`;
+                    } else if (hasDot) {
+                        return `Detected separator: .\nWill be treated as decimal`;
+                    }
+                    return 'No decimal separator found';
+                }
+            },
+            5: {
+                description: "Convert to standard format",
+                transform: (value) => {
+                    return parseNumber(value).toString();
+                }
+            },
+            6: {
+                description: "Final formatted result",
+                transform: (value) => {
+                    const num = parseNumber(value);
+                    return formatInput(num.toString(), '.');
+                }
+            }
+        };
+
+        let currentStepNumber = 1;
+        let stepperInput = '';
+
+        document.getElementById('startStepper').addEventListener('click', function() {
+            const input = document.getElementById('stepperInput').value;
+            if (!input) return;
+            
+            stepperInput = input;
+            currentStepNumber = 1;
+            document.querySelector('.stepper-content').style.display = 'block';
+            updateStepperDisplay();
+        });
+
+        document.getElementById('nextStep').addEventListener('click', function() {
+            if (currentStepNumber < 6) {
+                currentStepNumber++;
+                updateStepperDisplay();
+            }
+        });
+
+        document.getElementById('prevStep').addEventListener('click', function() {
+            if (currentStepNumber > 1) {
+                currentStepNumber--;
+                updateStepperDisplay();
+            }
+        });
+
+        document.getElementById('resetStepper').addEventListener('click', function() {
+            document.getElementById('stepperInput').value = '';
+            document.querySelector('.stepper-content').style.display = 'none';
+            currentStepNumber = 1;
+        });
+
+        function updateStepperDisplay() {
+            const step = stepperStates[currentStepNumber];
+            document.getElementById('currentStep').textContent = currentStepNumber;
+            document.getElementById('stepDescription').textContent = step.description;
+            document.getElementById('stepResult').textContent = step.transform(stepperInput);
+            
+            document.getElementById('prevStep').disabled = currentStepNumber === 1;
+            document.getElementById('nextStep').disabled = currentStepNumber === 6;
+        }
+
+        const modal = document.getElementById('howItWorksModal');
+        const showModalBtn = document.getElementById('showHowItWorks');
+        const closeModalBtn = document.querySelector('.close-modal');
+
+        showModalBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    </script>
+</body>
+</html> 
