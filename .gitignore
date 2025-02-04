@@ -1,0 +1,13 @@
+# Excel files
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+
+# Python files
+testscenarios.py
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
